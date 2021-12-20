@@ -11,8 +11,7 @@ Usage:
                                                              'https://youtu.be/Zgi9g1ksQHc'  # YouTube
                                                              'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 
-    python C:/Users/04rob/Documents/python/yolov5-master/detect_car.py --weights C:/Users/04rob/Documents/python/yolov5-master/models/emblem2.pt --max-det 1 --nosave --imgsz 608 --conf-thres 0.2 --source 'rtsp://192.168.10.150:554/1'
-    python C:/Users/04rob/Documents/python/yolov5-master/detect_car.py --weights C:/Users/04rob/Documents/python/yolov5-master/models/emblem2.pt --max-det 1 --imgsz 608 --conf-thres 0.2 --source C:/Users/04rob/Videos/Bil_Garasjen_trim.mp4
+    python /home/pi/yolov5/detect_car.py --weights /home/pi/yolov5/emblem4.pt --max-det 1 --nosave --conf-thres 0.2 --imgsz 352 --source 'rtsp://192.168.10.150:554/1'
 """
 
 import argparse
@@ -23,12 +22,30 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
+import time
+import threading
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+trig_pin = 26
+left_pin = 21
+right_pin = 20
+forward_pin = 16
+stop_pin = 12
+GPIO.setup(trig_pin, GPIO.IN)
+GPIO.setup(left_pin, GPIO.OUT)
+GPIO.setup(right_pin, GPIO.OUT)
+GPIO.setup(forward_pin, GPIO.OUT)
+GPIO.setup(stop_pin, GPIO.OUT)
+
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
+trig = False
+run_check_trig = True
 
 from models.common import DetectMultiBackend
 from utils.datasets import IMG_FORMATS, VID_FORMATS, LoadImages, LoadStreams
@@ -37,20 +54,34 @@ from utils.general import (LOGGER, check_file, check_img_size, check_imshow, che
 from utils.plots import Annotator, colors, save_one_box
 from utils.torch_utils import select_device, time_sync
 
+def check_trig():
+    global run_check_trig, trig
+    while run_check_trig:
+        try:
+            if GPIO.input(trig_pin):
+                trig = True
+            else:
+                trig = True
+        except:
+            GPIO.cleanup()
+            break
+    GPIO.cleanup()
+threading._start_new_thread(check_trig, ())
+
 
 @torch.no_grad()
-def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
-        source=ROOT / 'data/images',  # file/dir/URL/glob, 0 for webcam
+def run(weights=ROOT / 'emblem4.pt',  # model.pt path(s)
+        source=ROOT / 'rtsp://192.168.10.150:554/1',  # file/dir/URL/glob, 0 for webcam
         imgsz=(640, 640),  # inference size (height, width)
-        conf_thres=0.25,  # confidence threshold
+        conf_thres=0.2,  # confidence threshold
         iou_thres=0.45,  # NMS IOU threshold
-        max_det=1000,  # maximum detections per image
+        max_det=1,  # maximum detections per image
         device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
         view_img=False,  # show results
         save_txt=False,  # save results to *.txt
         save_conf=False,  # save confidences in --save-txt labels
         save_crop=False,  # save cropped prediction boxes
-        nosave=False,  # do not save images/videos
+        nosave=True,  # do not save images/videos
         classes=None,  # filter by class: --class 0, or --class 0 2 3
         agnostic_nms=False,  # class-agnostic NMS
         augment=False,  # augmented inference
@@ -66,22 +97,53 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         dnn=False,  # use OpenCV DNN for ONNX inference
         ):
 
-    drive_line_start, drive_line_stop = (0, 350), (1150, 370)
+    drive_line_start, drive_line_stop = (0, 150), (1150, 170)
     def line(x):
         line_stigning = (drive_line_stop[1]-drive_line_start[1])/(drive_line_stop[0]-drive_line_start[0])   #delta y/ delta x
         return line_stigning*x+drive_line_start[1]
+    
+    def light_out(light):
+        if light == "stop":
+            GPIO.output(stop_pin, GPIO.HIGH)
+            GPIO.output(forward_pin, GPIO.LOW)
+            GPIO.output(right_pin, GPIO.LOW)
+            GPIO.output(left_pin, GPIO.LOW)
+        elif light == "forward":
+            GPIO.output(stop_pin, GPIO.LOW)
+            GPIO.output(forward_pin, GPIO.HIGH)
+            GPIO.output(right_pin, GPIO.LOW)
+            GPIO.output(left_pin, GPIO.LOW)
+        elif light == "right":
+            GPIO.output(stop_pin, GPIO.LOW)
+            GPIO.output(forward_pin, GPIO.LOW)
+            GPIO.output(right_pin, GPIO.HIGH)
+            GPIO.output(left_pin, GPIO.LOW)
+        elif light == "left":
+            GPIO.output(stop_pin, GPIO.LOW)
+            GPIO.output(forward_pin, GPIO.LOW)
+            GPIO.output(right_pin, GPIO.LOW)
+            GPIO.output(left_pin, GPIO.HIGH)
+        elif light == "no":
+            GPIO.output(stop_pin, GPIO.LOW)
+            GPIO.output(forward_pin, GPIO.LOW)
+            GPIO.output(right_pin, GPIO.LOW)
+            GPIO.output(left_pin, GPIO.LOW)
 
 
     def drive_sign(forward, side_offset):
         if forward <= 0:
             print("X")
+            light_out("stop")
         elif side_offset > 10:
             print("<-")
+            light_out("left")
         elif side_offset < -10:
             print("->")
+            light_out("right")
         elif forward > 0:
             print("|")
             print("V")
+            light_out("forward")
 
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
@@ -145,6 +207,13 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
         # Process predictions
         for i, det in enumerate(pred):  # per image
+            global trig
+            k = 1
+            while not trig:
+                if k == 1:
+                    light_out("no")
+                    print("Waiting")
+                    k = 2
             seen += 1
             if webcam:  # batch_size >= 1
                 p, im0, frame = path[i], im0s[i].copy(), dataset.count
@@ -170,9 +239,9 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                 det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
                 
                 # Print results
-                #for c in det[:, -1].unique():
-                 #   n = (det[:, -1] == c).sum()  # detections per class
-                  #  s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                for c in det[:, -1].unique():
+                    n = (det[:, -1] == c).sum()  # detections per class
+                    s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
@@ -180,7 +249,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     center_point = round((c1[0]+c2[0])/2), round((c1[1]+c2[1])/2)
                     forward = drive_line_stop[0]-center_point[0]  #hvor mange piksler lenger frem det er negativ om der er for langt
                     side_offset = line(center_point[0])-center_point[1]    #gir differansen mellom y-pos på strek og y-pos på punktetpositiv verdi: hyllesiden av garasjen. "Opp" på bildet
-                    #drive_sign(forward, side_offset)
+                    drive_sign(forward, side_offset)
                     circle = cv2.circle(im0, center_point, 5, (255,0,0), 2)
                     text_coord = cv2.putText(im0, str(center_point), center_point, cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
 
@@ -198,7 +267,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                             save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
             # Print time (inference-only)
-            #LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
+            LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
 
             # Stream results
             im0 = annotator.result()
@@ -233,6 +302,9 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights)  # update model (to fix SourceChangeWarning)
+    
+    run_check_trig = False
+    GPIO.cleanup()
 
 
 def parse_opt():
