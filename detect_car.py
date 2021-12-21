@@ -11,7 +11,7 @@ Usage:
                                                              'https://youtu.be/Zgi9g1ksQHc'  # YouTube
                                                              'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 
-    python /home/pi/yolov5/detect_car.py --weights /home/pi/yolov5/emblem4.pt --max-det 1 --nosave --conf-thres 0.2 --imgsz 352 --source 'rtsp://192.168.10.150:554/1'
+    python /home/pi/yolov5/detect_car.py --weights /home/pi/yolov5/emblem4.pt --max-det 1 --nosave --conf-thres 0.08 --imgsz 288 --source 'rtsp://192.168.10.150:554/1'
 """
 
 import argparse
@@ -28,10 +28,10 @@ import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
 trig_pin = 26
-left_pin = 21
-right_pin = 20
-forward_pin = 16
-stop_pin = 12
+left_pin = 16
+right_pin = 12
+forward_pin = 20
+stop_pin = 21
 GPIO.setup(trig_pin, GPIO.IN)
 GPIO.setup(left_pin, GPIO.OUT)
 GPIO.setup(right_pin, GPIO.OUT)
@@ -61,7 +61,7 @@ def check_trig():
             if GPIO.input(trig_pin):
                 trig = True
             else:
-                trig = True
+                trig = False
         except:
             GPIO.cleanup()
             break
@@ -97,7 +97,7 @@ def run(weights=ROOT / 'emblem4.pt',  # model.pt path(s)
         dnn=False,  # use OpenCV DNN for ONNX inference
         ):
 
-    drive_line_start, drive_line_stop = (0, 150), (1150, 170)
+    drive_line_start, drive_line_stop = (0, 170), (1000, 250)
     def line(x):
         line_stigning = (drive_line_stop[1]-drive_line_start[1])/(drive_line_stop[0]-drive_line_start[0])   #delta y/ delta x
         return line_stigning*x+drive_line_start[1]
