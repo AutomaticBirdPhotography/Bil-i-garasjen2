@@ -4,8 +4,8 @@ cd yolov5
 pip install -r requirements.txt
 
 NB! på rpi (des. 2021):
-pip install torch==1.8.1
-pip install torchvision==0.9.1
+$ pip install torch==1.8.1
+$vpip install torchvision==0.9.1
 pip install numpy --upgrade
 datasets.py (i /yolov5/utils) byttes ut med datasets.py herfra (enkelte endringe for å forbedre performance bla. crop for hvor emblemet hvil være)
 
