@@ -26,5 +26,3 @@ Oppsettet:
 
 Ulemper:  
 - Kjører man ut av garasjen uten å lukke porten vil den stå å søke evig etter dette (dvs. enten til garasjen lukkes igjen eller bilen kjøres tilbake inn). -Det jobbes med å få porten til å lukkes når bilen kjøres ut av garasjen (dvs. mangler bare en 10m ledning).
-
-- Åpner man garasjen via Blynk vil det lyse opp rød X i fire minutter om ikke bilen beveges ut av garasjen. Vet ikke hvordan dette burde løses. Casper?
