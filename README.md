@@ -7,7 +7,7 @@ NB! på rpi (des. 2021):
 pip install torch==1.8.1  
 pip install torchvision==0.9.1  
 pip install numpy --upgrade  
-datasets.py (i /yolov5/utils) byttes ut med datasets.py herfra (enkelte endringe for å forbedre performance bla. crop for hvor emblemet hvil være)
+datasets.py (i /yolov5/utils) byttes ut med datasets.py herfra (enkelte endringer for å forbedre performance bla. crop for hvor emblemet hvil være)
 
 Kommandoen for å kjøre ligger i detect_car_info.py
 
