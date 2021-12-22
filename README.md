@@ -9,7 +9,8 @@ pip install torchvision==0.9.1
 pip install numpy --upgrade  
 datasets.py (i /yolov5/utils) byttes ut med datasets.py herfra (enkelte endringer for å forbedre performance bla. crop for hvor emblemet hvil være)
 
-Kommandoen for å kjøre ligger i detect_car_info.py
+Kommandoen for å kjøre ligger i detect_car_info.py  
+(emblem5.pt er optimalisert for --imgs 256, dette er med på å booste performance)
 
 
 Oppsettet:  
