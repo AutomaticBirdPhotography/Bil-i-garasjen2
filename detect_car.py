@@ -283,11 +283,12 @@ def run(weights=ROOT / 'emblem4.pt',  # model.pt path(s)
                     else:
                         start = time.time()
                         first_run = False
-                        if center_point[0] <= (100) and i_garasje:
+                        if center_point[0] <= 100 and i_garasje:
                             '''
                             lukk garasjeporten
                             '''
                             i_garasje = False
+                            light_timeout = True #skrur av lyset når blien er kjørt ut av garasjen
                             
                     drive_sign(light_up, forward, side_offset)
                     #text_coord = cv2.putText(im0, str(center_point), center_point, cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
