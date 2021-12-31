@@ -26,3 +26,4 @@ Oppsettet:
 
 Ulemper:  
 - Kjører man ut av garasjen uten å lukke porten vil den stå å søke evig etter dette (dvs. enten til garasjen lukkes igjen eller bilen kjøres tilbake inn). -Det jobbes med å få porten til å lukkes når bilen kjøres ut av garasjen (dvs. mangler bare en 10m ledning).
+- Mener å huske at lyset ikke slukkes etter at bilen er kjørt ut av garasjen?
