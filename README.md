@@ -3,7 +3,7 @@ git clone https://github.com/ultralytics/yolov5
 cd yolov5  
 pip install -r requirements.txt  
 
-NB! på rpi (des. 2021):
+NB! på rpi (des. 2021):  
 pip install torch==1.8.1  
 pip install torchvision==0.9.1  
 pip install numpy --upgrade  
