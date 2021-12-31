@@ -7,7 +7,7 @@ NB! på rpi (des. 2021):
 pip install torch==1.8.1  
 pip install torchvision==0.9.1  
 pip install numpy --upgrade  
-datasets.py (i /yolov5/utils) byttes ut med datasets.py herfra (enkelte endringer for å forbedre performance bla. crop for hvor emblemet hvil være)
+datasets.py (i /yolov5/utils) byttes ut med datasets.py herfra (enkelte endringer for å forbedre performance bla. crop for hvor emblemet vil være)
 
 Kommandoen for å kjøre ligger i detect_car_info.py  
 (emblem5.pt er optimalisert for --imgs 256, dette er med på å booste performance)
@@ -26,4 +26,3 @@ Oppsettet:
 
 Ulemper:  
 - Kjører man ut av garasjen uten å lukke porten vil den stå å søke evig etter dette (dvs. enten til garasjen lukkes igjen eller bilen kjøres tilbake inn). -Det jobbes med å få porten til å lukkes når bilen kjøres ut av garasjen (dvs. mangler bare en 10m ledning).
-- Mener å huske at lyset ikke slukkes etter at bilen er kjørt ut av garasjen?
